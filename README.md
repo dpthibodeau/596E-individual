@@ -27,7 +27,8 @@ age_gender_detect\
 `conda install -c conda-forge onnxruntime`
 `conda install pytorch torchvision -c pytorch`
 `conda install -c conda-forge protobuf`
-8. Open a terminal window, navigate to this folder and run `pip install -r "requirements.txt"` to download the libraries required. 
+8. Open a terminal window, navigate to this folder and run `pip install -r "requirements.txt"` to download the libraries required.
+9. Convert the models to ONNX format using `python -m mivolo.model.onnx.convert_models`
 
 **Basic Usage**
 

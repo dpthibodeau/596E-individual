@@ -7,8 +7,7 @@ IMPORTANT: Note that all results computed by the program are **predictions**, th
 **Requirements**
 
 1. Download the files in this repo into a folder (git clone or direct download).
-2. Download the `mivolo` folder on [this](https://github.com/WildChlamydia/MiVOLO) repo. Use the following link to quick download just the folder - [link](https://download-directory.github.io/?url=https%3A%2F%2Fgithub.com%2FWildChlamydia%2FMiVOLO%2Ftree%2Fmain%2Fmivolo)
-3. Create a new subfolder called `models`. Your structure should be like so -
+2. Create a new subfolder called `models`. Your structure should be like so -
 
 ```
 age_gender_detect\
@@ -22,11 +21,17 @@ age_gender_detect\
 
 4. [Download](https://drive.google.com/file/d/1CGNCkZQNj5WkP3rLpENWAOgrBQkUWRdw/view) body + face detector model to `models/yolov8x_person_face.pt`
 5. [Download](https://drive.google.com/file/d/11i8pKctxz3wVkDBlWKvhYIh7kpVFXSZ4/view) mivolo checkpoint to `models/mivolo_imbd.pth.tar`
-6. Open a terminal window, navigate to this folder and run `pip install -r "requirements.txt"` to download the libraries required. 
+6. Create a conda env with `conda create -n <my_env_name> python=3.10` then activate with `conda activate <my_env_name>`
+7. install conda packages:
+`conda install -c conda-forge onnx==1.14.0`
+`conda install -c conda-forge onnxruntime`
+`conda install pytorch torchvision -c pytorch`
+`conda install -c conda-forge protobuf`
+8. Open a terminal window, navigate to this folder and run `pip install -r "requirements.txt"` to download the libraries required. 
 
 **Basic Usage**
 
-1. In the command line, run `python3 server.py` to run the server. By default the server will run on port 5000. To specify another port, use the following command - `python3 server.py --port <your_port_num>`
+1. In the command line, run `python server.py` to run the server. By default the server will run on port 5000. To specify another port, use the following command - `python server.py --port <your_port_num>`
 2. The RescueBox application is needed to use the model and can be found [here](https://github.com/UMass-Rescue/RescueBox-Desktop). Instructions on how to use it and register our server are present in the link given.
 
 3. Once configured, this model will need the path to the directory containing input images. It will also need a path to where the output should be stored.
@@ -37,7 +42,7 @@ age_gender_detect\
 
 **Optional CLI arguments (before running server)**
 
-- `--device <device>` may be used to specify a different device to run the model on. Default is `cuda:0`.
+- `--device <device>` may be used to specify a different device to run the model on. Default is `cpu`.
 - `--checkpoint <checkpoint>` may be used to specify a different mivolo model checkpoint (.pth.tar file) to use for classification.
 - `--detector_weights <checkpoint>` may be used to specify a different yolo bounding box prediction model (.pt file) to use for classification.
 
@@ -47,3 +52,6 @@ age_gender_detect\
 - More rigorous evaluation of the model.
 - Come up with a better way of presenting results to the users.
 - Extending usage to videos.
+
+
+**Conversion to ONNX runtime**

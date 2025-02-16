@@ -4,7 +4,7 @@ This project is developed as part of 596E course at UMass Amherst. It works with
 
 IMPORTANT: Note that all results computed by the program are **predictions**, they may be incorrect or misleading.
 
-**Requirements**
+**Setting up the project and exporting to ONNX**
 
 1. Download the files in this repo into a folder (git clone or direct download).
 2. Create a new subfolder called `models`. Your structure should be like so -
@@ -20,7 +20,7 @@ age_gender_detect\
 ```
 
 4. [Download](https://drive.google.com/file/d/1CGNCkZQNj5WkP3rLpENWAOgrBQkUWRdw/view) body + face detector model to `models/yolov8x_person_face.pt`
-5. [Download](https://drive.google.com/file/d/11i8pKctxz3wVkDBlWKvhYIh7kpVFXSZ4/view) mivolo checkpoint to `models/mivolo_imbd.pth.tar`
+5. [Download](https://drive.google.com/file/d/11i8pKctxz3wVkDBlWKvhYIh7kpVFXSZ4/view) mivolo checkpoint and rename to `models/mivolo_imdb.pth.tar`
 6. Create a conda env with `conda create -n <my_env_name> python=3.10` then activate with `conda activate <my_env_name>`
 7. install conda packages:
 `conda install -c conda-forge onnx==1.14.0`
@@ -28,11 +28,11 @@ age_gender_detect\
 `conda install pytorch torchvision -c pytorch`
 `conda install -c conda-forge protobuf`
 8. Open a terminal window, navigate to this folder and run `pip install -r "requirements.txt"` to download the libraries required.
-9. Convert the models to ONNX format using `python -m mivolo.model.onnx.convert_models`
+9. Convert the models to ONNX format using `python -m mivolo.model.onnx.convert_models` or `<path_to_correct_python_conda_installation>/python -m mivolo.model.onnx.convert_models`
 
 **Basic Usage**
 
-1. In the command line, run `python server.py` to run the server. By default the server will run on port 5000. To specify another port, use the following command - `python server.py --port <your_port_num>`
+1. In the command line, run `python server.py` to run the server. By default the server will run on port 5000. To specify another port, use the following command - `python server.py --port <your_port_num>`. You may have to use `<path_to_correct_python_conda_installation>/python server.py`, as Python 3.10 was used in this project.
 2. The RescueBox application is needed to use the model and can be found [here](https://github.com/UMass-Rescue/RescueBox-Desktop). Instructions on how to use it and register our server are present in the link given.
 
 3. Once configured, this model will need the path to the directory containing input images. It will also need a path to where the output should be stored.
@@ -56,3 +56,8 @@ age_gender_detect\
 
 
 **Conversion to ONNX runtime**
+The convert_models.py file located in /mivolo/model/onnx handles the conversion of both the Yolo and MiVolo models used in this project. convert_models.py calls on mivolo_converter.py and yolo_converter.py to pre-process and convert the models according to their use. In those files, the export commands can be found:
+
+<img width="500" alt="Screenshot 2025-02-16 at 2 51 06 PM" src="https://github.com/user-attachments/assets/0b482d4c-13b0-49ea-b0ff-624bdf8659f9" />
+<img width="500" alt="Screenshot 2025-02-16 at 2 50 14 PM" src="https://github.com/user-attachments/assets/c8ff9d78-9674-45d7-a6a0-f397af2692cb" />
+<img width="500" alt="Screenshot 2025-02-16 at 2 49 50 PM" src="https://github.com/user-attachments/assets/f0409ad7-b079-405e-a986-1d99bb76533c" />

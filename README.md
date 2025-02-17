@@ -10,7 +10,7 @@ IMPORTANT: Note that all results computed by the program are **predictions**, th
 2. Create a new subfolder called `models`. Your structure should be like so -
 
 ```
-age_gender_detect\
+596E-individual\
 │
 ├── mivolo\
 ├── models\

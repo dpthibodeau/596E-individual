@@ -58,7 +58,7 @@ IMPORTANT: Note that all results computed by the program are **predictions**, th
 - Extending usage to videos.
 
 
-**Conversion to ONNX runtime**
+## Conversion to ONNX runtime
 
 The convert_models.py file located in /mivolo/model/onnx handles the conversion of both the Yolo and MiVolo models used in this project. convert_models.py calls on mivolo_converter.py and yolo_converter.py to pre-process and convert the models according to their use. In those files, the export commands can be found in those files:
 

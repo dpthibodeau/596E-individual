@@ -1,5 +1,7 @@
 # Classifying images based on Age/Gender
 
+** Modified from https://github.com/pritshah9/age_classification_596E **
+
 This project is developed as part of 596E course at UMass Amherst. It works with the RescueBox app. It uses the [MiVolo](https://github.com/WildChlamydia/MiVOLO) model for bounding box predictions on images and then to classify whether the person(s) is a child or an adult and classifies their gender too.
 
 IMPORTANT: Note that all results computed by the program are **predictions**, they may be incorrect or misleading.

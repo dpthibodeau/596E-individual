@@ -24,16 +24,18 @@ IMPORTANT: Note that all results computed by the program are **predictions**, th
 4. [Download](https://drive.google.com/file/d/1CGNCkZQNj5WkP3rLpENWAOgrBQkUWRdw/view) body + face detector model to `models/yolov8x_person_face.pt`
 5. [Download](https://drive.google.com/file/d/11i8pKctxz3wVkDBlWKvhYIh7kpVFXSZ4/view) mivolo checkpoint and rename to `models/mivolo_imdb.pth.tar`
 6. install packages on machine
-`brew install cmake`
+`brew install cmake`<br>
 `brew install protobuf`
 7. Create a conda env with `conda create -n <my_env_name> python=3.10` then activate with `conda activate <my_env_name>`
 8. install conda packages:
-`conda install -c conda-forge onnx==1.14.0`
-`conda install -c conda-forge onnxruntime`
-`conda install pytorch torchvision -c pytorch`
+`conda install -c conda-forge onnx==1.14.0`<br>
+`conda install -c conda-forge onnxruntime`<br>
+`conda install pytorch torchvision -c pytorch`<br>
 `conda install -c conda-forge protobuf`
 9. Open a terminal window, navigate to this folder and run `pip install -r "requirements.txt"` to download the libraries required.
-10. Convert the models to ONNX format using script `python -m mivolo.model.onnx.convert_models` or `<path_to_correct_python_conda_installation>/python -m mivolo.model.onnx.convert_models` (i.e. `/Users/davidthibodeau/miniconda3/envs/myenv/bin/python -m mivolo.model.onnx.convert_models`)
+10. Convert the models to ONNX format using script `python -m mivolo.model.onnx.convert_models`<br>
+    or `<path_to_correct_python_conda_installation>/python -m mivolo.model.onnx.convert_models`<br>
+    (i.e. `/Users/davidthibodeau/miniconda3/envs/myenv/bin/python -m mivolo.model.onnx.convert_models`)
 
 **Basic Usage**
 
@@ -42,9 +44,9 @@ IMPORTANT: Note that all results computed by the program are **predictions**, th
 2. The RescueBox application is the easiest way to use the model and can be found [here](https://github.com/UMass-Rescue/RescueBox-Desktop). Instructions on how to use it and register our server are present in the link given.
 
 3. There is also a CLI for running this model straight from a terminal session. From the project directory, you may run cli.py. On my machine, I included the direct path to the correct python installation: `<path_to_correct_python_conda_installation>/python cli.py`. Arguments to the CLI are listed below:
-   --input-dir: Directory containing your input images (required)
-   --output-dir: Directory where results will be saved (required)
-   --single-person: Only process the first detected person in each image (optional)
+   --input-dir: Directory containing your input images (required)<br>
+   --output-dir: Directory where results will be saved (required)<br>
+   --single-person: Only process the first detected person in each image (optional)<br>
    --no-images: Don't save the processed images with annotations (optional)
 
 Example usage of the CLI using the included test images and saving to an outputs folder:

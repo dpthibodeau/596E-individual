@@ -41,11 +41,23 @@ IMPORTANT: Note that all results computed by the program are **predictions**, th
    
 2. The RescueBox application is the easiest way to use the model and can be found [here](https://github.com/UMass-Rescue/RescueBox-Desktop). Instructions on how to use it and register our server are present in the link given.
 
-3. Once configured, this model will need the path to the directory containing input images. It will also need a path to where the output should be stored.
+3. There is also a CLI for running this model straight from a terminal session. From the project directory, you may run cli.py. On my machine, I included the direct path to the correct python installation: `<path_to_correct_python_conda_installation>/python cli.py`. Arguments to the CLI are listed below:
+   --input-dir: Directory containing your input images (required)
+   --output-dir: Directory where results will be saved (required)
+   --single-person: Only process the first detected person in each image (optional)
+   --no-images: Don't save the processed images with annotations (optional)
 
-4. Two optional arguments are also available. If **Store images** is true, the program will store annotated (age, gender) images as part of an folder starting with `outputs_` which will be created at the output path. The output images will have boxes around the detected faces. I have labeled every face with detected age under 22 as a child (to minimize the chances of mislabeling a child). If **Single person flag** is set to be true, the program will assume each image only has a single face and will give one prediction per image. 
+Example usage of the CLI using the included test images and saving to an outputs folder:
+`/Users/davidthibodeau/miniconda3/envs/myenv/bin/python cli.py --input-dir ./test_data --output-dir ./outputs`
 
-5. There will be a csv and a json output file. The json file is a complete overview, each item in the main list corresponds to an image and has the image path and results. The results will be a list of objects where each object corresponds to a face and has the gender, age and bounding box predictions. The csv gives a more condensed analysis and includes 4 attributes per image - number of children, adults, male persons and female persons. Note again these are just **predictions** and may be incorrect!
+<img width="708" alt="Screenshot 2025-02-19 at 11 02 54 AM" src="https://github.com/user-attachments/assets/9b467746-957b-4a5e-9e0f-e319058bc17b" />
+
+
+5. Once configured, this model will need the path to the directory containing input images. It will also need a path to where the output should be stored.
+
+6. Two optional arguments are also available. If **Store images** is true, the program will store annotated (age, gender) images as part of an folder starting with `outputs_` which will be created at the output path. The output images will have boxes around the detected faces. I have labeled every face with detected age under 22 as a child (to minimize the chances of mislabeling a child). If **Single person flag** is set to be true, the program will assume each image only has a single face and will give one prediction per image. 
+
+7. There will be a csv and a json output file. The json file is a complete overview, each item in the main list corresponds to an image and has the image path and results. The results will be a list of objects where each object corresponds to a face and has the gender, age and bounding box predictions. The csv gives a more condensed analysis and includes 4 attributes per image - number of children, adults, male persons and female persons. Note again these are just **predictions** and may be incorrect!
 
 **Optional CLI arguments (before running server)**
 

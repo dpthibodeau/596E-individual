@@ -38,7 +38,8 @@ IMPORTANT: Note that all results computed by the program are **predictions**, th
 **Basic Usage**
 
 1. In the command line, run `python server.py` to run the server. By default the server will run on port 5000. To specify another port, use the following command - `python server.py --port <your_port_num>`. You may have to use `<path_to_correct_python_conda_installation>/python server.py` (i.e. `/Users/davidthibodeau/miniconda3/envs/myenv/bin/python server.py`), as Python 3.10 was used in this project.
-2. The RescueBox application is needed to use the model and can be found [here](https://github.com/UMass-Rescue/RescueBox-Desktop). Instructions on how to use it and register our server are present in the link given.
+   
+2. The RescueBox application is the easiest way to use the model and can be found [here](https://github.com/UMass-Rescue/RescueBox-Desktop). Instructions on how to use it and register our server are present in the link given.
 
 3. Once configured, this model will need the path to the directory containing input images. It will also need a path to where the output should be stored.
 
@@ -71,7 +72,7 @@ and <br>
 
 After convert_models.py is run per the instructions above, the /models/onnx directory is created and the .onnx models are stored there. They are used in the code as seen in server.py:
 
-
-
 <img width="499" alt="Screenshot 2025-02-17 at 5 41 06 PM" src="https://github.com/user-attachments/assets/a4ea961c-f489-4874-bad8-2f0345c14c5f" /> <br>
 <img width="540" alt="Screenshot 2025-02-17 at 5 42 20 PM" src="https://github.com/user-attachments/assets/469ece82-9460-4915-911c-8036ae06bb67" /> <br>
+
+

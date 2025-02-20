@@ -28,7 +28,9 @@ class Meta:
         self.num_classes_gender = 2
         self.input_size = 224
 
-    def load_from_ckpt(self, ckpt_path: str, disable_faces: bool = False, use_persons: bool = True) -> "Meta":
+    def load_from_ckpt(
+        self, ckpt_path: str, disable_faces: bool = False, use_persons: bool = True
+    ) -> "Meta":
 
         state = torch.load(ckpt_path, map_location="cpu")
 
@@ -43,7 +45,9 @@ class Meta:
         if "with_persons_model" in state:
             self.with_persons_model = state["with_persons_model"]
         else:
-            self.with_persons_model = True if "patch_embed.conv1.0.weight" in state["state_dict"] else False
+            self.with_persons_model = (
+                True if "patch_embed.conv1.0.weight" in state["state_dict"] else False
+            )
 
         self.num_classes = 1 if only_age else 3
         self.in_chans = 3 if not self.with_persons_model else 6
@@ -61,7 +65,12 @@ class Meta:
 
     def __str__(self):
         attrs = vars(self)
-        attrs.update({"use_person_crops": self.use_person_crops, "use_face_crops": self.use_face_crops})
+        attrs.update(
+            {
+                "use_person_crops": self.use_person_crops,
+                "use_face_crops": self.use_face_crops,
+            }
+        )
         return ", ".join("%s: %s" % item for item in attrs.items())
 
     @property
@@ -118,7 +127,9 @@ class MiVOLO:
         self.model = self.model.to(self.device)
 
         if torchcompile:
-            assert has_compile, "A version of torch w/ torch.compile() is required for --compile, possibly a nightly."
+            assert (
+                has_compile
+            ), "A version of torch w/ torch.compile() is required for --compile, possibly a nightly."
             torch._dynamo.reset()
             self.model = torch.compile(self.model, backend=torchcompile)
 
@@ -157,7 +168,9 @@ class MiVOLO:
             # nothing to process
             return
 
-        faces_input, person_input, faces_inds, bodies_inds = self.prepare_crops(image, detected_bboxes)
+        faces_input, person_input, faces_inds, bodies_inds = self.prepare_crops(
+            image, detected_bboxes
+        )
 
         if faces_input is None and person_input is None:
             # nothing to process
@@ -213,22 +226,32 @@ class MiVOLO:
             detected_bboxes.associate_faces_with_persons()
 
         crops: PersonAndFaceCrops = detected_bboxes.collect_crops(image)
-        (bodies_inds, bodies_crops), (faces_inds, faces_crops) = crops.get_faces_with_bodies(
-            self.meta.use_person_crops, self.meta.use_face_crops
+        (bodies_inds, bodies_crops), (faces_inds, faces_crops) = (
+            crops.get_faces_with_bodies(
+                self.meta.use_person_crops, self.meta.use_face_crops
+            )
         )
 
         if not self.meta.use_face_crops:
             assert all(f is None for f in faces_crops)
 
         faces_input = prepare_classification_images(
-            faces_crops, self.input_size, self.data_config["mean"], self.data_config["std"], device=self.device
+            faces_crops,
+            self.input_size,
+            self.data_config["mean"],
+            self.data_config["std"],
+            device=self.device,
         )
 
         if not self.meta.use_person_crops:
             assert all(p is None for p in bodies_crops)
 
         person_input = prepare_classification_images(
-            bodies_crops, self.input_size, self.data_config["mean"], self.data_config["std"], device=self.device
+            bodies_crops,
+            self.input_size,
+            self.data_config["mean"],
+            self.data_config["std"],
+            device=self.device,
         )
 
         _logger.info(

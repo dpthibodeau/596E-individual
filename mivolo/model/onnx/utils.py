@@ -1,13 +1,16 @@
 import torch
 from dataclasses import dataclass
 
+
 @dataclass
 class Boxes:
     xyxy: torch.Tensor
 
+
 @dataclass
 class Results:
     boxes: Boxes
+
 
 @dataclass
 class DetectedObjects:

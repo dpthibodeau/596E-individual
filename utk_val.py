@@ -16,7 +16,9 @@ def main():
         pred_age = res["label"]
         pred_gender = res["gender"]
         true_label = r["file_path"].split("\\")[-1].split("_")
-        t_age, t_gender = int(true_label[0]), ("male" if true_label[1] == "0" else "female")
+        t_age, t_gender = int(true_label[0]), (
+            "male" if true_label[1] == "0" else "female"
+        )
         if t_age < 18:
             child_count += 1
             if pred_age == "child":

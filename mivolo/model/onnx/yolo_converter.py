@@ -1,20 +1,19 @@
 import torch
 from ultralytics import YOLO
 import os
+from pathlib import Path
+import shutil
 
 def export_yolo_to_onnx(model_path: str, output_path: str):
     """Convert YOLO model to ONNX format"""
     print(f"Converting YOLO model from {model_path} to ONNX...")
     
-    # Store original torch load function
     _torch_load_original = torch.load
     
     def safe_load(*args, **kwargs):
-        # Force weights_only=False for older PyTorch versions
         kwargs['weights_only'] = False
         return _torch_load_original(*args, **kwargs)
     
-    # Replace torch.load temporarily
     torch.load = safe_load
     
     try:
@@ -29,6 +28,9 @@ def export_yolo_to_onnx(model_path: str, output_path: str):
                              imgsz=640)  # Use default YOLO image size
         
         if success:
+            default_onnx_path = str(Path(model_path).with_suffix('.onnx'))
+            if os.path.exists(default_onnx_path):
+                shutil.move(default_onnx_path, output_path)
             print(f"YOLO model exported successfully to: {output_path}")
             
             # Verify the exported model
@@ -44,5 +46,4 @@ def export_yolo_to_onnx(model_path: str, output_path: str):
         raise
         
     finally:
-        # Restore original torch.load
         torch.load = _torch_load_original

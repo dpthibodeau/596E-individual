@@ -23,7 +23,7 @@ class ONNXPreProcessor:
         img = cv2.resize(img, self.mivolo_size)
         lab = cv2.cvtColor(img, cv2.COLOR_BGR2LAB)
         l, a, b = cv2.split(lab)
-        clahe = cv2.createCLAHE(clipLimit=4.0, tileGridSize=(4,4))
+        clahe = cv2.createCLAHE(clipLimit=3.0, tileGridSize=(4,4))
         cl = clahe.apply(l)
         img = cv2.merge((cl,a,b))
         img = cv2.cvtColor(img, cv2.COLOR_LAB2BGR)
@@ -41,10 +41,10 @@ class ONNXInference:
         self.yolo_session = ort.InferenceSession(yolo_path)
         self.mivolo_session = ort.InferenceSession(mivolo_path)
         self.preprocessor = ONNXPreProcessor()
-        self.confidence_threshold = 0.001
-        self.scale_factors = [0.05, 0.1, 0.2, 0.4, 0.6, 0.8, 1.0, 1.25, 1.5, 2.0, 2.5, 3.0, 3.5]
-        self.min_face_size = 2
-        self.face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
+        self.confidence_threshold = 0.02
+        self.min_face_size = 20
+        self.max_face_size = 800
+        self.scale_factors = [0.1, 0.2, 0.35, 0.5, 0.75, 1.0, 1.25, 1.5]
 
     def compute_iou(self, box1, box2):
         x1 = max(box1[0], box2[0])
@@ -63,12 +63,8 @@ class ONNXInference:
         if len(boxes) == 0:
             return []
                 
-        if num_faces > 2:
-            iou_threshold = 0.01
-            overlap_threshold = 0.1
-        else:
-            iou_threshold = 0.03
-            overlap_threshold = 0.15
+        iou_threshold = 0.3
+        overlap_threshold = 0.2
                 
         x1 = boxes[:, 0]
         y1 = boxes[:, 1]
@@ -107,19 +103,14 @@ class ONNXInference:
     def preprocess_image(self, img, max_size=2400):
         lab = cv2.cvtColor(img, cv2.COLOR_BGR2LAB)
         l, a, b = cv2.split(lab)
-        clahe = cv2.createCLAHE(clipLimit=4.0, tileGridSize=(8,8))
+        clahe = cv2.createCLAHE(clipLimit=3.0, tileGridSize=(8,8))
         cl = clahe.apply(l)
         img = cv2.merge((cl,a,b))
         img = cv2.cvtColor(img, cv2.COLOR_LAB2BGR)
         
-        img = cv2.bilateralFilter(img, 9, 75, 75)
-        
-        gamma = 1.2
+        gamma = 1.1
         lookup_table = np.array([((i / 255.0) ** (1.0 / gamma)) * 255 for i in np.arange(0, 256)]).astype("uint8")
         img = cv2.LUT(img, lookup_table)
-        
-        # Additional contrast enhancement
-        img = cv2.convertScaleAbs(img, alpha=1.1, beta=0)
         
         orig_height, orig_width = img.shape[:2]
         scale = min(max_size / max(orig_height, orig_width), 1.0)
@@ -130,10 +121,11 @@ class ONNXInference:
         return img, scale
 
     def process_yolo_scale(self, img, scale_factor=1.0):
+        img_height, img_width = img.shape[:2]
+        
         if scale_factor != 1.0:
-            height, width = img.shape[:2]
-            new_height = int(height * scale_factor)
-            new_width = int(width * scale_factor)
+            new_height = int(img_height * scale_factor)
+            new_width = int(img_width * scale_factor)
             img = cv2.resize(img, (new_width, new_height))
         
         yolo_input = self.preprocessor.prepare_yolo_input(img)
@@ -142,16 +134,26 @@ class ONNXInference:
         
         boxes = []
         scores = []
-        img_height, img_width = img.shape[:2]
         
         for i in range(detection.shape[0]):
             confidence = float(detection[i, 4])
             if confidence > self.confidence_threshold:
-                x1, y1, x2, y2 = [float(v) for v in detection[i, :4]]
-                x1 = x1 * img_width / 640
-                x2 = x2 * img_width / 640
-                y1 = y1 * img_height / 640
-                y2 = y2 * img_height / 640
+                cx = float(detection[i, 0]) * img_width / 640
+                cy = float(detection[i, 1]) * img_height / 640
+                
+                face_width = float(detection[i, 2]) * img_width / 640
+                face_height = float(detection[i, 3]) * img_height / 640
+                
+                face_size = max(face_width, face_height)
+                face_size = max(face_size, self.min_face_size)
+                
+                padding = face_size * 0.2
+                half_size = (face_size + padding) / 2
+                
+                x1 = max(0, min(img_width, cx - half_size))
+                x2 = max(0, min(img_width, cx + half_size))
+                y1 = max(0, min(img_height, cy - half_size))
+                y2 = max(0, min(img_height, cy + half_size))
                 
                 if scale_factor != 1.0:
                     x1 /= scale_factor
@@ -159,46 +161,45 @@ class ONNXInference:
                     y1 /= scale_factor
                     y2 /= scale_factor
                 
+                x1 = max(0, min(img_width, x1))
+                x2 = max(0, min(img_width, x2))
+                y1 = max(0, min(img_height, y1))
+                y2 = max(0, min(img_height, y2))
+                
                 width = x2 - x1
                 height = y2 - y1
-                area = width * height
-                orig_area = (img_width/scale_factor) * (img_height/scale_factor)
-                area_ratio = area / orig_area
+                area_ratio = (width * height) / (img_width * img_height)
                 
-                if (width > self.min_face_size and 
-                    height > self.min_face_size and 
-                    area_ratio < 0.99 and 
-                    area_ratio > 0.0001 and
-                    width / height < 2.0 and 
-                    height / width < 2.0):
+                if (width >= self.min_face_size and 
+                    height >= self.min_face_size and
+                    width <= self.max_face_size and
+                    height <= self.max_face_size and
+                    0.000005 < area_ratio < 0.3 and
+                    abs(width - height) / max(width, height) < 0.3):
                     boxes.append([x1, y1, x2, y2])
                     scores.append(confidence)
         
         return boxes, scores
 
-    def process_cascade_detections(self, img, existing_boxes):
-        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        # More aggressive cascade parameters
-        cascade_faces = self.face_cascade.detectMultiScale(gray, 1.05, 2, minSize=(20,20))
+    def validate_box(self, box, img_height, img_width):
+        x1, y1, x2, y2 = box
+        x1 = max(0, min(img_width, x1))
+        x2 = max(0, min(img_width, x2))
+        y1 = max(0, min(img_height, y1))
+        y2 = max(0, min(img_height, y2))
         
-        additional_boxes = []
-        for (x, y, w, h) in cascade_faces:
-            new_box = [float(x), float(y), float(x+w), float(y+h)]
-            
-            overlap = False
-            for box in existing_boxes:
-                if self.compute_iou(new_box, box) > 0.2:  # Lower overlap threshold
-                    overlap = True
-                    break
-            
-            if not overlap:
-                additional_boxes.append(new_box)
+        width = x2 - x1
+        height = y2 - y1
         
-        return additional_boxes
+        if width < self.min_face_size or height < self.min_face_size:
+            return None
+        if width > self.max_face_size or height > self.max_face_size:
+            return None
+            
+        return [x1, y1, x2, y2]
 
     def recognize(self, img):
         processed_img, scale = self.preprocess_image(img)
-        
         all_boxes = []
         all_scores = []
         
@@ -206,11 +207,6 @@ class ONNXInference:
             boxes, scores = self.process_yolo_scale(processed_img, scale_factor)
             all_boxes.extend(boxes)
             all_scores.extend(scores)
-        
-        if len(all_boxes) < 3:  # More aggressive cascade fallback
-            cascade_boxes = self.process_cascade_detections(processed_img, all_boxes)
-            all_boxes.extend(cascade_boxes)
-            all_scores.extend([0.3] * len(cascade_boxes))
         
         if not all_boxes:
             return DetectedObjects(Results(Boxes(xyxy=torch.tensor([]))), [], [], {}), img
@@ -220,25 +216,30 @@ class ONNXInference:
         
         if len(boxes) > 2:
             face_centers = np.array([(box[0] + box[2])/2 for box in boxes])
-            clustering = DBSCAN(eps=0.15, min_samples=1).fit(face_centers.reshape(-1, 1))
+            clustering = DBSCAN(eps=0.25, min_samples=1).fit(face_centers.reshape(-1, 1))
             num_clusters = len(set(clustering.labels_)) - (1 if -1 in clustering.labels_ else 0)
         else:
             num_clusters = 1
             
         keep_indices = self.nms_with_overlap_threshold(boxes, scores, num_faces=num_clusters)
         boxes = boxes[keep_indices]
-        
         boxes = torch.tensor(boxes, dtype=torch.float32)
         ages = []
         genders = []
+        raw_ages = []
+        face_sizes = []
         face_to_person_map = {}
         valid_boxes = []
         
         for i, box in enumerate(boxes):
             try:
                 x1, y1, x2, y2 = map(int, box[:4])
-                x1, y1 = max(0, x1), max(0, y1)
-                x2, y2 = min(img.shape[1], x2), min(img.shape[0], y2)
+                padding_x = int((x2 - x1) * 0.1)
+                padding_y = int((y2 - y1) * 0.1)
+                x1 = max(0, x1 - padding_x)
+                y1 = max(0, y1 - padding_y)
+                x2 = min(img.shape[1], x2 + padding_x)
+                y2 = min(img.shape[0], y2 + padding_y)
                 
                 if x2 <= x1 or y2 <= y1:
                     continue
@@ -252,20 +253,10 @@ class ONNXInference:
                 pred = mivolo_outputs[0][0]
                 
                 raw_age = float(pred[0])
-                scaled_age = 1 / (1 + np.exp(-raw_age)) * 80
-                
                 face_size = min(x2 - x1, y2 - y1)
-                image_diag = np.sqrt(img.shape[0]**2 + img.shape[1]**2)
-                size_ratio = face_size / image_diag
                 
-                child_threshold = 16 if size_ratio > 0.05 else 12
-                gender_threshold = -0.4 if scaled_age <= child_threshold else -0.3
-                
-                gender = "female" if pred[1] > gender_threshold else "male"
-                label = "child" if scaled_age <= child_threshold else "adult"
-                
-                ages.append(scaled_age)
-                genders.append(gender)
+                raw_ages.append(raw_age)
+                face_sizes.append(face_size)
                 face_to_person_map[len(valid_boxes)] = len(valid_boxes)
                 valid_boxes.append(box.tolist())
                 
@@ -275,8 +266,49 @@ class ONNXInference:
         
         if not valid_boxes:
             return DetectedObjects(Results(Boxes(xyxy=torch.tensor([]))), [], [], {}), img
+        
+        max_face_size = max(face_sizes)
+        normalized_ages = []
+        for raw_age, face_size in zip(raw_ages, face_sizes):
+            size_factor = face_size / max_face_size
+            base_age = 1 / (1 + np.exp(-raw_age)) * 70  
             
+            if size_factor < 0.7:  
+                adjusted_age = base_age * 0.7
+            else:
+                adjusted_age = base_age
+                
+            normalized_ages.append(adjusted_age)
+        
+        sorted_ages = sorted(normalized_ages)
+        age_gaps = [sorted_ages[i+1] - sorted_ages[i] for i in range(len(sorted_ages)-1)]
+        
+        if len(age_gaps) > 0:
+            median_gap = np.median(age_gaps)
+            for i in range(len(normalized_ages)):
+                if i > 0 and normalized_ages[i] - normalized_ages[i-1] < median_gap/2:
+                    normalized_ages[i] = normalized_ages[i-1] + median_gap/2
+        
         valid_boxes = torch.tensor(valid_boxes, dtype=torch.float32)
+        
+        # Process each face with normalized ages
+        for i, box in enumerate(valid_boxes):
+            x1, y1, x2, y2 = map(int, box)
+            face = img[y1:y2, x1:x2]
+            mivolo_input = self.preprocessor.prepare_mivolo_input(face)
+            mivolo_outputs = self.mivolo_session.run(None, {"input": mivolo_input})
+            pred = mivolo_outputs[0][0]
+            
+            size_factor = face_sizes[i] / max_face_size
+            base_threshold = 0.1
+            gender_threshold = base_threshold + (0.1 * (1 - size_factor))  
+            
+            gender = "female" if pred[1] > gender_threshold else "male"
+            label = "child" if normalized_ages[i] <= 22 else "adult"
+            
+            ages.append(normalized_ages[i])
+            genders.append(gender)
+        
         detected_objects = DetectedObjects(
             yolo_results=Results(boxes=Boxes(xyxy=valid_boxes)),
             ages=ages,

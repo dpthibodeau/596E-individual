@@ -17,7 +17,7 @@ def convert_models():
     export_yolo_to_onnx(yolo_path, yolo_onnx_path)
     
     # Convert MiVOLO model
-    mivolo_path = os.path.join(project_root, "models", "mivolo_imdb.pth.tar")
+    mivolo_path = os.path.join(project_root, "models", "mivolo_imdb.pt.tar")
     mivolo_onnx_path = os.path.join(onnx_dir, "mivolo_imdb.onnx")
     export_mivolo_to_onnx(mivolo_path, mivolo_onnx_path)
 

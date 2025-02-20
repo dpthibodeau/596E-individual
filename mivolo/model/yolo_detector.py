@@ -14,11 +14,9 @@ class Detector:
             print(f"Loading YOLO model from {weights}")
         self.device = device
         
-        # Verify weights file exists
         if not os.path.exists(weights):
             raise FileNotFoundError(f"YOLO weights file not found: {weights}")
         
-        # Add necessary safe globals
         serialization.add_safe_globals([
             DetectionModel,
             Conv,
@@ -31,35 +29,24 @@ class Detector:
             torch.nn.ModuleList
         ])
         
-        # Store original torch load function
         _torch_load_original = torch.load
         
         def safe_load(*args, **kwargs):
             kwargs.pop('weights_only', None)
             return _torch_load_original(*args, weights_only=False, **kwargs)
         
-        # Replace torch.load temporarily
         torch.load = safe_load
         
         try:
             self.yolo = YOLO(weights)
             self.yolo.to(device)
         finally:
-            # Restore original torch.load
             torch.load = _torch_load_original
             
         if verbose:
             print("YOLO model loaded successfully")
 
     def predict(self, images):
-        """
-        Detect persons and faces in the image
-        Args:
-            image: input image(s)
-            
-        Returns:
-            PersonAndFaceResult: Object containing detection results
-        """
         with torch.no_grad():
             results = self.yolo(
                 source=images,

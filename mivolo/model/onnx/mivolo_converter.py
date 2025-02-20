@@ -12,8 +12,8 @@ class ONNXOutlookAttention(nn.Module):
     def __init__(self, original_module):
         super().__init__()
         # Get dimensions from weights
-        self.v_weight = original_module.v.weight  # [192, 192]
-        self.attn_weight = original_module.attn.weight  # [486, 192]
+        self.v_weight = original_module.v.weight
+        self.attn_weight = original_module.attn.weight
         self.embed_dim = self.v_weight.shape[0]
         
         # Fixed dimensions for OutlookAttention
@@ -105,7 +105,6 @@ class ONNXCompatibleMiVOLO(nn.Module):
             if H != 224 or W != 224:
                 x = F.interpolate(x, size=(224, 224), mode='bilinear', align_corners=False)
         
-        # Forward through model
         return self.model(x)
 
 def export_mivolo_to_onnx(checkpoint_path: str, output_path: str):

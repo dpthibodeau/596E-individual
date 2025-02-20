@@ -8,3 +8,6 @@ flask-ml==0.2.5
 six
 python-dateutil
 matplotlib
+onnx
+onnxruntime
+scikit-learn

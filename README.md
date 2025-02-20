@@ -89,4 +89,7 @@ After convert_models.py is run per the instructions above, the /models/onnx dire
 <img width="499" alt="Screenshot 2025-02-17 at 5 41 06 PM" src="https://github.com/user-attachments/assets/a4ea961c-f489-4874-bad8-2f0345c14c5f" /> <br>
 <img width="540" alt="Screenshot 2025-02-17 at 5 42 20 PM" src="https://github.com/user-attachments/assets/469ece82-9460-4915-911c-8036ae06bb67" /> <br>
 
+**Example RescueBox Output:**
 
+
+<img width="1022" alt="Screenshot 2025-02-19 at 7 40 57 PM" src="https://github.com/user-attachments/assets/e04ba7e2-ae96-43de-979e-73f1265f48fc" />
